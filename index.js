@@ -32,6 +32,11 @@ async function run() {
     res.json(result)
   })
 
+    app.get('/all-ideas',async(req,res)=>{
+    const result = await ideaCollection.find().toArray();
+    res.json(result)
+  })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
