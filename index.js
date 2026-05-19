@@ -25,7 +25,12 @@ async function run() {
     await client.connect();
 
    const db = client.db('ideavault');
-   
+   const ideaCollection = db.collection('ideas');
+
+    app.get('/trending-ideas',async(req,res)=>{
+    const result = await ideaCollection.find().limit(6).toArray();
+    res.json(result)
+  })
 
 
     // Send a ping to confirm a successful connection
