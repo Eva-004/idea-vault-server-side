@@ -32,8 +32,18 @@ async function run() {
     res.json(result)
   })
 
+
     app.get('/all-ideas',async(req,res)=>{
-    const result = await ideaCollection.find().toArray();
+      const search = req.query.search || '';
+            
+      const query = search ?{
+          ideaTitle:{
+             $regex: search,
+             $options: "i" 
+          }
+      } : {};
+       
+    const result = await ideaCollection.find(query).toArray();
     res.json(result)
   })
 
