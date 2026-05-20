@@ -31,21 +31,40 @@ async function run() {
     const result = await ideaCollection.find().limit(6).toArray();
     res.json(result)
   })
+   
+    app.post('/all-ideas',async(req,res)=>{
+      const idea=req.body;
+      
+    const result = await ideaCollection.insertOne(idea);
+    res.json(result)
+  })
 
 
     app.get('/all-ideas',async(req,res)=>{
+      
       const search = req.query.search || '';
+      const category = req.query.category || '';
             
-      const query = search ?{
-          ideaTitle:{
+      const query =  {};
+    
+       if(search){
+        
+          query.ideaTitle={
              $regex: search,
              $options: "i" 
           }
-      } : {};
-       
-    const result = await ideaCollection.find(query).toArray();
+    
+       }
+       if(category){
+        query.category=category
+       }
+
+      const result = await ideaCollection.find(query).toArray();
+    
     res.json(result)
   })
+
+
 
 
     // Send a ping to confirm a successful connection
