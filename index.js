@@ -91,6 +91,14 @@ async function run() {
       res.json(result)
     });
 
+    app.delete('/comment/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await commentCollection.deleteOne({ _id: new ObjectId(id) });
+      
+      res.json(result);
+
+    });
+
     app.patch('/all-ideas/:id', async (req, res) => {
       const { id } = req.params;
       const updatedData = req.body;
