@@ -79,9 +79,19 @@ async function run() {
     app.get('/comments', async (req, res) => {
       const result = await commentCollection.find().toArray();
       res.json(result)
-    })
+    });
 
+    app.patch('/ideas/:id',async(req,res)=>{
+    const {id} = req.params;
+    const updatedData = req.body;
+    const result = await ideaCollection.updateOne(
+      {_id: new ObjectId(id)},
+      {$set: updatedData}
+    );
+     res.json(result)
+  });
 
+  
 
 
     // Send a ping to confirm a successful connection
