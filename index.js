@@ -8,7 +8,7 @@ dotenv.config();
 const port = process.env.PORT;
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-// const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs');
 const uri = process.env.MONGODB_URI;
 
 const client = new MongoClient(uri, {
@@ -19,10 +19,33 @@ const client = new MongoClient(uri, {
   }
 });
 
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.CLIENT_URL}/api/auth/jwks`)
+)
+
+const verifyToken = async(req,res,next)=>{
+  const authHeader = req?.headers.authorization;
+  if(!authHeader){
+   return res.status(401).json({message: 'unauthorized'})
+  }
+  const token = authHeader.split(' ')[1];
+    if(!token){
+     return res.status(401).json({message: 'unauthorized'})
+    }
+    
+    try {
+      const {payload} = await jwtVerify(token,JWKS)
+      console.log(payload)
+      next();
+    } catch (error) {
+      res.status(403).json({message: 'forbidden'})
+    }
+}
+
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const db = client.db('ideavault');
     const ideaCollection = db.collection('ideas');
@@ -33,20 +56,20 @@ async function run() {
       res.json(result)
     })
 
-    app.post('/all-ideas', async (req, res) => {
+    app.post('/all-ideas',verifyToken, async (req, res) => {
       const idea = req.body;
 
       const result = await ideaCollection.insertOne(idea);
       res.json(result)
     })
 
-    app.get('/all-ideas/:id', async (req, res) => {
+    app.get('/all-ideas/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await ideaCollection.findOne({ _id: new ObjectId(id) });
       res.json(result)
     })
 
-    app.get('/all-ideas', async (req, res) => {
+    app.get('/all-ideas' , async (req, res) => {
 
       const search = req.query.search || '';
       const category = req.query.category || '';
@@ -70,18 +93,18 @@ async function run() {
       res.json(result)
     });
 
-    app.post('/comments', async (req, res) => {
+    app.post('/comments',verifyToken, async (req, res) => {
       const comment = req.body;
 
       const result = await commentCollection.insertOne(comment);
       res.json(result)
     })
-    app.get('/comments', async (req, res) => {
+    app.get('/comments',verifyToken, async (req, res) => {
       const result = await commentCollection.find().toArray();
       res.json(result)
     });
 
-    app.patch('/comment/:id', async (req, res) => {
+    app.patch('/comment/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const updatedData = req.body;
       const result = await commentCollection.updateOne(
@@ -91,7 +114,7 @@ async function run() {
       res.json(result)
     });
 
-    app.delete('/comment/:id', async (req, res) => {
+    app.delete('/comment/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await commentCollection.deleteOne({ _id: new ObjectId(id) });
       
@@ -99,7 +122,7 @@ async function run() {
 
     });
 
-    app.patch('/all-ideas/:id', async (req, res) => {
+    app.patch('/all-ideas/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const updatedData = req.body;
       const result = await ideaCollection.updateOne(
@@ -109,7 +132,7 @@ async function run() {
       res.json(result)
     });
 
-    app.delete('/all-ideas/:id', async (req, res) => {
+    app.delete('/all-ideas/:id',verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await ideaCollection.deleteOne({ _id: new ObjectId(id) });
       const deletedComments = await commentCollection.deleteMany({
@@ -124,7 +147,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
