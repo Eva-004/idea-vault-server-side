@@ -55,7 +55,7 @@ async function run() {
 
       if (search) {
 
-        query.ideaTitle = {
+        query.title = {
           $regex: search,
           $options: "i"
         }
@@ -81,7 +81,7 @@ async function run() {
       res.json(result)
     });
 
-    app.patch('/ideas/:id',async(req,res)=>{
+    app.patch('/all-ideas/:id',async(req,res)=>{
     const {id} = req.params;
     const updatedData = req.body;
     const result = await ideaCollection.updateOne(
@@ -91,7 +91,12 @@ async function run() {
      res.json(result)
   });
 
-  
+  app.delete('/all-ideas/:id' ,async(req,res)=>{
+     const {id} = req.params;
+     const result = await ideaCollection.deleteOne({_id: new ObjectId(id)});
+     res.json(result)
+
+  })
 
 
     // Send a ping to confirm a successful connection
