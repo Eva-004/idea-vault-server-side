@@ -40,7 +40,7 @@ async function run() {
       res.json(result)
     })
 
-    app.get('/all-ideas/:id',async (req, res) => {
+    app.get('/all-ideas/:id', async (req, res) => {
       const { id } = req.params;
       const result = await ideaCollection.findOne({ _id: new ObjectId(id) });
       res.json(result)
@@ -81,22 +81,38 @@ async function run() {
       res.json(result)
     });
 
-    app.patch('/all-ideas/:id',async(req,res)=>{
-    const {id} = req.params;
-    const updatedData = req.body;
-    const result = await ideaCollection.updateOne(
-      {_id: new ObjectId(id)},
-      {$set: updatedData}
-    );
-     res.json(result)
-  });
+    app.patch('/comment/:id', async (req, res) => {
+      const { id } = req.params;
+      const updatedData = req.body;
+      const result = await commentCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.json(result)
+    });
 
-  app.delete('/all-ideas/:id' ,async(req,res)=>{
-     const {id} = req.params;
-     const result = await ideaCollection.deleteOne({_id: new ObjectId(id)});
-     res.json(result)
+    app.patch('/all-ideas/:id', async (req, res) => {
+      const { id } = req.params;
+      const updatedData = req.body;
+      const result = await ideaCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.json(result)
+    });
 
-  })
+    app.delete('/all-ideas/:id', async (req, res) => {
+      const { id } = req.params;
+      const result = await ideaCollection.deleteOne({ _id: new ObjectId(id) });
+      const deletedComments = await commentCollection.deleteMany({
+        ideaId: id
+      });
+      res.json({
+        result,
+        deletedComments
+      })
+
+    });
 
 
     // Send a ping to confirm a successful connection
